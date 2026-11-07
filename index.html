@@ -83,15 +83,15 @@ function menu(){G=null;if(!S.prof)return signup();$('hud').style.display='none';
  $('m').innerHTML=`<div class="card"><h1>🪨 Cozy Golem</h1><div id="ol" class="s" style="margin:0 0 6px"></div><div class="row"><span>${S.prof.g=='f'?'👩':'👨'} <b>${esc(S.prof.n)}</b></span><span>Tổng điểm: <b>${fmt(S.tot)}</b></span></div>
  <div class="row"><span>Điểm swap: <b>${fmt(S.pts)}</b></span><span>Token: <b>${S.tok.toFixed(2)}</b></span></div>
  <div class="row"><button onclick="wal()">${S.addr||'Kết nối ví (demo)'}</button><button onclick="conv()" ${S.pts<1000?'disabled':''}>Đổi điểm → token</button></div>
- <h3>Nhân vật</h3><div class="grid">${Object.keys(HE).map(k=>`<button class="${k==sel?'on':''}" onclick="sel='${k}';menu()">${HE[k].n}<br>Lv ${lv(k)} · HP ${Math.round(HE[k].hp*(1+.05*lv(k)))}</button>`).join('')}</div>
+ <h3>Nhân vật</h3><div class="grid">${Object.keys(HE).map(k=>`<button class="${k==sel?'on':''}" onclick="sel='${k}';menu()">${HE[k].n}<br>Lv ${lv(k)} · HP ${Math.round(HE[k].hp*(1+.05*lv(k))*(1+.1*tuo(k).hp))}</button>`).join('')}</div>
  <h3>Cổng sang trại khác</h3><div class="grid">${RG.map((r,i)=>`<button class="${i==reg?'on':''}" ${i>S.cl?'disabled':''} onclick="reg=${i};menu()">${i>S.cl?'🔒 ':''}${r[0]}<br>✦ ×${r[1]}<span class="rc" data-i="${i}"></span></button>`).join('')}</div>
- ${invH()}${dqH()}<h3>🏆 Bảng xếp hạng (tổng điểm)</h3><div id="lb"></div><button class="go" onclick="start()">▶ Vào trại ${RG[reg][0]}</button>
+ ${tuH()}${invH()}${dqH()}<h3>🏆 Bảng xếp hạng (tổng điểm)</h3><div id="lb"></div><button class="go" onclick="start()">▶ Vào trại ${RG[reg][0]}</button>
  <p class="s">Di chuyển: WASD / kéo chuột hoặc ngón tay · Space: lướt · E: Rage. Thắng một vùng để mở cổng tiếp theo. Ví và token chỉ là bản demo, lưu trên máy này.</p></div>`;
  $('m').style.display='flex';lbR();olR();setSt(-1);qrR()}
 function wal(){if(!S.addr){S.addr='0x'+[...Array(4)].map(()=>Math.random().toString(16).slice(2,6)).join('').slice(0,6)+'…'+Math.random().toString(16).slice(2,6);save();menu()}}
 function conv(){S.tok+=S.pts/1000;S.pts=0;save();menu()}
-function start(){const h=HE[sel],l=lv(sel),r=RG[reg],mh=h.hp*(1+.05*l);
- G={t:180,h:sel,r:reg,p:{x:0,y:0,hp:mh,mh,dm:h.dm*(1+.06*l),sp:h.sp,dash:0,dcd:0,rcd:0,ncd:0,hcd:0,fcd:0,gcd:0,zcd:0,ucd:0,sh:0,ld:{x:1,y:0}},up:{orb:1,reach:0,might:0,armor:0,agi:0,reg:0},
+function start(){const h=HE[sel],l=lv(sel),r=RG[reg],mh=h.hp*(1+.05*l)*(1+.1*tuo(sel).hp);
+ G={t:180,h:sel,r:reg,p:{x:0,y:0,hp:mh,mh,dm:h.dm*(1+.06*l)*(1+.08*tuo(sel).dm),sp:h.sp,dash:0,dcd:0,rcd:0,ncd:0,hcd:0,fcd:0,gcd:0,zcd:0,ucd:0,sh:0,cdr:Math.min(.3,.02*tuo(sel).sk),skm:1+.08*tuo(sel).sk,ld:{x:1,y:0}},up:{orb:1,reach:0,might:0,armor:0,agi:0,reg:0},
   lvl:1,xp:0,nx:5,en:[],gm:[],tx:[],ln:[],mt:[],ch:[],vn:[],wx:['sun','rain','storm','fog'][Math.floor(Math.random()*4)],pr:[],fx:[],ob:[],k:0,jw:0,jc:[0,0,0,0,0],ang:0,fire:0,spT:0,bs:0,bk:0,pause:0,over:0};
  $('m').style.display='none';$('hud').style.display='block';joinCamp();setSt(G.r);$('dash').style.display=$('rage').style.display='block';aub();ubR();HL();$('wx').textContent=WX[G.wx][0];toast(WX[G.wx][0]+' '+WX[G.wx][1]);toast('Độ khó '+'★'.repeat(G.r+1)+'☆'.repeat(10-G.r)+' · Quái +'+35*G.r+'% máu');last=performance.now()}
 function quit(){if(G){G.q=1;end(false)}}
@@ -208,7 +208,7 @@ function shield(){if(!G||G.pause||G.p.zcd>0)return;G.p.zcd=16;us();G.p.sh=4}
 const WX={sun:['☀️','Nắng: hồi máu thêm 1.5/s'],rain:['🌧','Mưa: chậm 8%, Sấm sét +50%'],storm:['⛈','Bão: sét đánh ngẫu nhiên (cả bạn!)'],fog:['🌫','Sương mù: quái +30%, XP +30%']};
 const us=()=>{G.sk=(G.sk||0)+1};
 function tar(){S.ar=!S.ar;save();aub()}
-function ult(){if(!G||G.pause||G.p.ucd>0)return;const p=G.p;p.ucd=25;us();
+function ult(){if(!G||G.pause||G.p.ucd>0)return;const p=G.p;p.ucd=25*(1-p.cdr);us();
  if(G.h=='lira')G.bh={x:p.x+p.ld.x*180,y:p.y+p.ld.y*180,l:2.5};
  else if(G.h=='brakk'){p.sh=3;G.fx.push({x:p.x,y:p.y,l:.5,m:.5,r:300});for(const e of G.en){const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<300){e.x+=dx/d*220;e.y+=dy/d*220;e.sl=3;hurt(e,p.dm*6)}}}
  else G.hz=5}
@@ -333,13 +333,13 @@ function leaveCamp(){setSt(-1);if(camp){camp.leave().catch(()=>{});camp=null}pee
 
 const KN={lira:['Băng Q','Bùng E','Dịch R','Sấm F','Sao G','Gương Z','Hố đen X','Lướt'],brakk:['Chấn Q','Xoáy E','Giáp R','Xông F','Giáo G','Khiên Z','Xung X','Lướt'],fen:['Rễ Q','Độc E','Hồi R','Gai F','Bẫy G','Vỏ Z','Rừng X','Lướt']};
 function HL(){['nova','rage','heal','fire','meteor','shield','ult','dash'].forEach((i,k)=>{const b=$(i);if(b)b.textContent=KN[G.h][k]})}
-const kcd=(k,v)=>{if(!G||G.pause||G.p[k]>0)return 0;G.p[k]=v;us();return 1};
+const kcd=(k,v)=>{if(!G||G.pause||G.p[k]>0)return 0;G.p[k]=v*(1-G.p.cdr);us();return 1};
 const kne=r=>G.en.filter(e=>!e.dead&&Math.hypot(e.x-G.p.x,e.y-G.p.y)<r);
 const kfx=(r,l)=>G.fx.push({x:G.p.x,y:G.p.y,l:l||.5,m:l||.5,r});
 const kn3=(n)=>G.en.filter(e=>!e.dead).sort((a,b)=>Math.hypot(a.x-G.p.x,a.y-G.p.y)-Math.hypot(b.x-G.p.x,b.y-G.p.y)).slice(0,n);
 function basic(b,bd){const p=G.p,g=G;if(g.h=='fen'){g.vn.push({x:b.x,y:b.y,l:2.2,t:0});return 1.1}
  if(bd>140)return .12;kfx(130,.2);const a=Math.atan2(b.y-p.y,b.x-p.x);for(const e of g.en){const dx=e.x-p.x,dy=e.y-p.y;if(Math.hypot(dx,dy)<130+(e.s||0)*.4){let d=Math.abs(Math.atan2(dy,dx)-a);if(d>3.1416)d=6.283-d;if(d<1.4)hurt(e,dmg()*2.2)}}return .7}
-function dash(){if(!G||G.pause||G.p.dcd>0)return;const p=G.p,h=G.h;p.dash=.2;p.dcd=h=='brakk'?4:h=='lira'?2.2:2.8;us();
+function dash(){if(!G||G.pause||G.p.dcd>0)return;const p=G.p,h=G.h;p.dash=.2;p.dcd=(h=='brakk'?4:h=='lira'?2.2:2.8)*(1-p.cdr);us();
  if(h=='lira'){kfx(120,.3);for(const e of kne(120))hurt(e,p.dm*2)}else if(h=='brakk')for(const e of kne(90)){e.sl=1.5;hurt(e,p.dm*3)}else p.hp=Math.min(p.mh,p.hp+p.mh*.03)}
 function nova(){if(!kcd('ncd',9))return;const p=G.p,h=G.h,r=h=='lira'?280:h=='brakk'?260:300;kfx(r);for(const e of kne(r)){e.sl=h=='brakk'?2.5:3;if(h=='fen')e.pz=4;hurt(e,p.dm*(h=='lira'?2:h=='brakk'?3:1.5))}}
 function rage(){if(!kcd('rcd',12))return;const p=G.p,h=G.h,r=h=='lira'?240:h=='brakk'?200:300;kfx(r);for(const e of kne(r)){if(h=='lira')hurt(e,p.dm*9);else if(h=='brakk'){const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;e.x+=dx/d*120;e.y+=dy/d*120;hurt(e,p.dm*7)}else{e.pz=6;hurt(e,p.dm*1.2)}}}
@@ -352,5 +352,12 @@ function meteor(){if(!kcd('gcd',14))return;const p=G.p,h=G.h;
  if(h=='fen'){for(const e of kn3(4))G.vn.push({x:e.x,y:e.y,l:5,t:0,r:90});return}
  const t=kne(500);for(let i=0;i<8;i++){const e=t[Math.floor(Math.random()*t.length)],a=Math.random()*6.283,r=Math.random()*200;G.mt.push({x:e?e.x:p.x+Math.cos(a)*r,y:e?e.y:p.y+Math.sin(a)*r,l:.7+i*.12})}}
 function shield(){const h=G&&G.h;if(!kcd('zcd',h=='brakk'?18:16))return;const p=G.p;p.sh=h=='brakk'?6:h=='lira'?3:4;if(h=='fen')p.hp=Math.min(p.mh,p.hp+p.mh*.15)}
+const tuo=h=>{S.tu=S.tu||{};return S.tu[h]=S.tu[h]||{hp:0,dm:0,sk:0}};
+const TU={hp:['❤️ Máu',.4,'+10% máu tối đa mỗi cấp'],dm:['⚔️ Sức mạnh',.5,'+8% sát thương mỗi cấp'],sk:['✨ Kỹ năng',.6,'+8% sát thương skill, hồi chiêu −2% mỗi cấp']};
+const tcost=(k,l)=>Math.round(TU[k][1]*Math.pow(1.35,l)*100)/100;
+function tup(k){const u=tuo(sel),c=tcost(k,u[k]);if(u[k]>=20||S.tok<c)return;S.tok=Math.round((S.tok-c)*100)/100;u[k]++;save();menu()}
+function tuH(){const u=tuo(sel);return`<h3>🔥 Lò luyện token — ${HE[sel].n}</h3>`+Object.keys(TU).map(k=>{const l=u[k],c=tcost(k,l);return`<div class="k"><span>${TU[k][0]} · Cấp ${l}/20<br><small>${TU[k][2]}</small></span><button ${l>=20||S.tok<c?'disabled':''} onclick="tup('${k}')">${l>=20?'Tối đa':'Nâng · '+c.toFixed(2)+' token'}</button></div>`}).join('')+'<p class="s">Đổi điểm → token ở phía trên (1.000 điểm = 1 token). Nâng cấp giữ vĩnh viễn cho nhân vật này ở mọi vùng. Chọn nhân vật khác để nâng cấp cho nhân vật đó.</p>'}
+const SKW=f=>function(){const p=G&&G.p;if(!p)return f.apply(this,arguments);const o=p.dm;p.dm=o*(p.skm||1);try{return f.apply(this,arguments)}finally{p.dm=o}};
+nova=SKW(nova);rage=SKW(rage);zap=SKW(zap);meteor=SKW(meteor);heal=SKW(heal);ult=SKW(ult);
 invInit();aub();netInit();lobInit();menu();requestAnimationFrame(loop);
 </script></body></html>
