@@ -31,6 +31,7 @@ button:focus-visible{outline:3px solid #7a5cff}
 .k{display:flex;justify-content:space-between;background:var(--soft);padding:7px 12px;border-radius:12px;margin:5px 0;font-weight:700}
 #fire{right:calc(100px + env(safe-area-inset-right,0px))}#meteor{right:calc(180px + env(safe-area-inset-right,0px))}#shield{right:calc(260px + env(safe-area-inset-right,0px))}#fire,#meteor,#shield{bottom:calc(100px + env(safe-area-inset-bottom,0px))}
 #ult{right:calc(340px + env(safe-area-inset-right,0px));bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+#js{position:fixed;left:calc(24px + env(safe-area-inset-left,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.22);border:3px solid rgba(255,255,255,.75);display:none;touch-action:none;z-index:4}body.run.touch #js{display:block}#jk{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hud">
@@ -41,6 +42,7 @@ button:focus-visible{outline:3px solid #7a5cff}
 <button class="rb" id="dash" onclick="dash()">Lướt</button>
 <button class="rb" id="rage" onclick="rage()">Rage</button><button class="rb x" id="nova" onclick="nova()">Băng Q</button><button class="rb x" id="heal" onclick="heal()">Hồi R</button><button class="rb x" id="fire" onclick="zap()">Sấm F</button><button class="rb x" id="meteor" onclick="meteor()">Sao G</button><button class="rb x" id="shield" onclick="shield()">Khiên Z</button><button class="rb x" id="ult" onclick="ult()">Tuyệt kỹ X</button>
 <div id="m"></div>
+<div id="js"><div id="jk"></div></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 (()=>{if(window.claude||!window.firebase)return;
@@ -276,9 +278,15 @@ function loop(now){T0=now/1000;document.body.className=G&&!G.over?'run':'';const
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=1;if(k==' '){dash();e.preventDefault()}if(k=='t'&&G&&!G.over)tauto();if(k=='f')zap();if(k=='x')ult();if(k=='g')meteor();if(k=='z')shield();if(k=='e')rage();if(k=='q')nova();if(k=='r')heal()});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
 let jo=null;
-cv.addEventListener('pointerdown',e=>{jo={x:e.clientX,y:e.clientY};joy={x:0,y:0};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointerdown',e=>{if(document.body.classList.contains('touch'))return;jo={x:e.clientX,y:e.clientY};joy={x:0,y:0};cv.setPointerCapture(e.pointerId)});
 cv.addEventListener('pointermove',e=>{if(!jo)return;const a=e.clientX-jo.x,b=e.clientY-jo.y,d=Math.hypot(a,b)||1,k=Math.min(1,d/50);joy={x:a/d*k,y:b/d*k}});
 const rel=()=>{jo=null;joy=null};cv.addEventListener('pointerup',rel);cv.addEventListener('pointercancel',rel);
+if(matchMedia('(pointer:coarse)').matches||'ontouchstart' in window)document.body.classList.add('touch');
+(()=>{const b=$('js'),k=$('jk');let id=null;
+ const mv=e=>{const r=b.getBoundingClientRect(),R=r.width/2;let a=(e.clientX-r.left-R)/R,c=(e.clientY-r.top-R)/R;const d=Math.hypot(a,c);if(d>1){a/=d;c/=d}joy=d<.12?{x:0,y:0}:{x:a,y:c};k.style.transform=`translate(${a*R*.6}px,${c*R*.6}px)`};
+ b.addEventListener('pointerdown',e=>{e.preventDefault();id=e.pointerId;b.setPointerCapture(id);mv(e)});
+ b.addEventListener('pointermove',e=>{if(e.pointerId===id)mv(e)});
+ const up=e=>{if(e.pointerId!==id)return;id=null;joy=null;k.style.transform=''};b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault())})();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let camp=null,peers={},uid=null,dbp=null,pt=0,lbRows=[],gs='m';
 async function netInit(){try{const u=await claude.use('user');uid=u?await u.id():null;const d=await claude.use('db');
