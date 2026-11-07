@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cozy Golem Survivors</title>
+<title>Cozy Golem Survivors</title><link rel="icon" href="data:,">
 <style>
 :root{--card:#fff7e4;--ink:#4a3424;--soft:#f3e3bf;--gold:#b97d10;--ok:#3fb868;color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--card:#3a3040;--ink:#f6e9d4;--soft:#4b3f52;--gold:#f0c050;color-scheme:dark}}
@@ -41,6 +41,27 @@ button:focus-visible{outline:3px solid #7a5cff}
 <button class="rb" id="dash" onclick="dash()">Lướt</button>
 <button class="rb" id="rage" onclick="rage()">Rage</button><button class="rb x" id="nova" onclick="nova()">Băng Q</button><button class="rb x" id="heal" onclick="heal()">Hồi R</button><button class="rb x" id="fire" onclick="zap()">Sấm F</button><button class="rb x" id="meteor" onclick="meteor()">Sao G</button><button class="rb x" id="shield" onclick="shield()">Khiên Z</button><button class="rb x" id="ult" onclick="ult()">Tuyệt kỹ X</button>
 <div id="m"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(()=>{if(window.claude||!window.firebase)return;
+firebase.initializeApp({apiKey:"AIzaSyA02cO6lyoXkZuMX8SndtXYowScgLHUhNY",authDomain:"mkgolem-85e3b.firebaseapp.com",projectId:"mkgolem-85e3b",appId:"1:996303963689:web:9682b434cd72af4cacbe38"});
+const au=firebase.auth(),fs=firebase.firestore();let ready=null;
+const login=()=>ready||(ready=au.signInAnonymously().then(c=>c.user));const now=()=>Date.now();
+function mk(col,rm,gap,fr,hb){let cur=null,last=0,tm=null,un=null,iv=null,snap=[],cbs=[],hbT=0;
+ const me=()=>au.currentUser&&au.currentUser.uid;
+ const flush=()=>{if(!cur||!me())return Promise.resolve();last=now();const d={...cur,ts:now()};if(rm)d.room=rm;return fs.collection(col).doc(me()).set(d).catch(()=>{})};
+ const emit=()=>{const p=snap.filter(d=>d.ts>now()-fr).map(d=>({peer:d.id,isMe:d.id==me(),kind:'viewer',presence:d.data}));cbs.forEach(f=>f({peers:p}))};
+ const o={presence(d){cur=d;clearTimeout(tm);const w=gap-(now()-last);if(w<=0)return flush();tm=setTimeout(flush,w);return Promise.resolve()},
+  onPeers(cb,er){cbs.push(cb);if(!un){const q=rm?fs.collection(col).where('room','==',rm):fs.collection(col);un=q.onSnapshot(s=>{snap=s.docs.map(w=>({id:w.id,ts:w.data().ts||0,data:w.data()}));emit()},er||(()=>{}));iv=setInterval(emit,5000)}},
+  on(){},emit(){return Promise.resolve()},
+  async join(n){await login();return mk('pos',n,2000,9000,0)},
+  leave(){clearTimeout(tm);clearInterval(iv);clearInterval(hbT);if(un)un();un=null;cbs=[];return me()?fs.collection(col).doc(me()).delete().catch(()=>{}):Promise.resolve()}};
+ if(hb)hbT=setInterval(()=>{if(cur)flush()},hb);return o}
+const lobby=mk('lobby',null,0,50000,20000);
+window.claude={use:async n=>{const u=await login();return n=='user'?{id:async()=>u.uid}:n=='db'?fs:n=='room'?lobby:null}};
+addEventListener('pagehide',()=>{const u=au.currentUser;if(u){fs.collection('lobby').doc(u.uid).delete();fs.collection('pos').doc(u.uid).delete()}});
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),x=cv.getContext('2d');
@@ -264,10 +285,10 @@ async function netInit(){try{const u=await claude.use('user');uid=u?await u.id()
  if(d&&uid){dbp=d.collection('players');invSync(d);dbp.orderBy('tot','desc').limit(10).onSnapshot(s=>{lbRows=s.docs.map(w=>w.data());lbR()},()=>{});
   const me=await dbp.doc(uid).get();if(me.exists&&!S.prof){const v=me.data();S.prof={n:String(v.n),g:v.g=='f'?'f':'m'};S.tot=Math.max(S.tot,+v.tot||0);S.cl=Math.max(S.cl,+v.cl||0);save();menu()}}}catch(e){}}
 const SITE='https://quananh87.github.io/mk-golem/';
-function invUrl(){if(!S.inv){S.inv=Math.random().toString(36).slice(2,8).toUpperCase();save()}return SITE+'?ref='+S.inv+'&n='+encodeURIComponent(S.prof?S.prof.n:'')}
-function invInit(){invUrl();try{const q=new URLSearchParams(location.search),rf=(q.get('ref')||'').replace(/[^A-Za-z0-9]/g,'').slice(0,8).toUpperCase(),rn=(q.get('n')||'').slice(0,14);
+function invUrl(){if(!S.inv){S.inv=Math.random().toString(36).slice(2,8).toUpperCase();save()}return SITE+'#i-'+S.inv}
+function invInit(){invUrl();try{const m=/^#i-([A-Za-z0-9]{4,8})$/.exec(location.hash),rf=m?m[1].toUpperCase():'',rn='';
  if(rf&&!S.ref&&rf!==S.inv){S.ref=rf;S.refn=rn;S.pts+=300;S.tot+=300;save();setTimeout(()=>toast('🎁 Bạn được '+(rn||'bạn bè')+' mời: +300 ✦'),700)}
- if(rf)history.replaceState(null,'',location.pathname)}catch(_){}}
+ }catch(_){}}
 function invH(){invUrl();return`<h3>🔗 Mời bạn bè</h3><div class="k"><span>Mã mời của bạn</span><span>${S.inv}</span></div><div class="row"><div id="qr" style="background:#fff;padding:6px;border-radius:10px;min-width:152px;min-height:152px"></div><div style="flex:1;min-width:140px"><button style="width:100%" onclick="shareInv()">📋 Sao chép / chia sẻ link</button><p class="s">Bạn mới vào bằng link hoặc QR được +300✦${S.refn?' (bạn được '+esc(S.refn)+' mời)':''}. Đã mời: <b>${S.rc||0}</b> người (+200✦ mỗi người).</p></div></div>`}
 function qrR(){const e=$('qr');if(e&&window.QRCode)try{new QRCode(e,{text:invUrl(),width:140,height:140})}catch(_){}}
 async function shareInv(){const u=invUrl();try{if(navigator.share){await navigator.share({title:'Cozy Golem',text:'Chơi Cozy Golem cùng mình! Mã mời '+S.inv,url:u});return}}catch(_){}try{await navigator.clipboard.writeText(u);toast('📋 Đã sao chép link mời')}catch(_){prompt('Sao chép link:',u)}}
@@ -276,9 +297,9 @@ function invSync(d){try{const iv=d.collection('invites');if(S.ref&&!S.refSent)iv
 let lob=null,onl={t:1,c:[0,0,0,0,0,0]};
 async function lobInit(){try{const r=await claude.use('room');if(!r)return;lob=r;r.onPeers(ch=>{const c=[0,0,0,0,0,0];let t=0;for(const p of ch.peers){if(p.kind!='viewer')continue;t++;const k=p.presence&&p.presence.c;if(k>=0&&k<6)c[k]++}onl={t,c};olR()},()=>{lob=null;olR()});setSt(-1);olR()}catch(e){}}
 function setSt(c){if(lob)lob.presence({c,n:S.prof?S.prof.n:'?'}).catch(()=>{})}
-function olR(){const e=$('ol');if(e)e.textContent=lob?'🟢 Đang online: '+onl.t+' người chơi (gồm bạn)':'⚪ Chưa kết nối online (chức năng online chỉ chạy trên claude.ai)';
+function olR(){const e=$('ol');if(e)e.textContent=lob?'🟢 Đang online: '+onl.t+' người chơi (gồm bạn)':'⚪ Chưa kết nối online (kiểm tra mạng hoặc cấu hình Firebase)';
  document.querySelectorAll('.rc').forEach(b=>{const n=onl.c[+b.dataset.i];b.textContent=n?' · 👥 '+n+' đang chơi':''})}
-function lbR(){const e=$('lb');if(!e)return;e.innerHTML=lbRows.length?lbRows.map((r,i)=>`<div class="k"><span>${i+1}. ${r.g=='f'?'👩':'👨'} ${esc(r.n)}</span><span>${fmt(+r.tot||0)}</span></div>`).join(''):`<p class="s">${dbp?'Chưa có ai trên bảng. Hãy thắng một trận!':'Cần đăng nhập claude.ai (tài khoản có quyền Contributor) để lên bảng xếp hạng.'}</p>`}
+function lbR(){const e=$('lb');if(!e)return;e.innerHTML=lbRows.length?lbRows.map((r,i)=>`<div class="k"><span>${i+1}. ${r.g=='f'?'👩':'👨'} ${esc(r.n)}</span><span>${fmt(+r.tot||0)}</span></div>`).join(''):`<p class="s">${dbp?'Chưa có ai trên bảng. Hãy thắng một trận!':'Chưa kết nối máy chủ — kiểm tra mạng hoặc cấu hình Firebase.'}</p>`}
 function sync(){if(dbp&&uid&&S.prof)dbp.doc(uid).set({n:S.prof.n,g:S.prof.g,tot:S.tot,cl:S.cl}).catch(()=>{})}
 function signup(){$('m').innerHTML=`<div class="card"><h1>Tạo nhân vật</h1><input id="nm" maxlength="14" placeholder="Tên người chơi"><h3>Giới tính nhân vật</h3><div class="grid"><button id="gm" class="on" onclick="gs='m';gb()">👨 Nam</button><button id="gf" onclick="gs='f';gb()">👩 Nữ</button></div><button class="go" onclick="mk()">Vào trại</button></div>`;$('m').style.display='flex'}
 function gb(){$('gm').className=gs=='m'?'on':'';$('gf').className=gs=='f'?'on':''}
