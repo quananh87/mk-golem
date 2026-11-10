@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Copyright (c) 2026 quananh87. All rights reserved. Unauthorized copying, modification or redistribution of this code is prohibited. See LICENSE. -->
 <html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cozy Golem Survivors</title><link rel="icon" href="data:,">
@@ -36,7 +37,7 @@ button:focus-visible{outline:3px solid #7a5cff}
 <canvas id="c"></canvas>
 <div id="hud">
  <div class="bar"><i id="xpb"></i></div>
- <div class="pill"><span id="wx"></span><span id="hon" style="font-size:12px"></span><span id="tm">3:00</span><span id="kl">⚔ 0</span><span id="jw">💎 0</span><span class="bar" id="hpw"><i id="hpb"></i></span><button id="at" onclick="tauto()" style="font-size:12px;padding:4px 8px">🤖 Auto: TẮT</button><button id="ar" onclick="tar()" style="font-size:12px;padding:4px 8px">🔁</button><button id="qt" onclick="quit()">Thoát</button></div>
+ <div class="pill"><span id="wx"></span><span id="hon" style="font-size:12px"></span><span id="tm">3:00</span><span id="kl">⚔ 0</span><span id="jw">💎 0</span><span class="bar" id="hpw"><i id="hpb"></i></span><button id="at" onclick="tauto()" style="font-size:12px;padding:4px 8px">🤖 Auto: TẮT</button><button id="ar" onclick="tar()" style="font-size:12px;padding:4px 8px">🔁</button><button id="mu" onclick="tmu()" style="font-size:12px;padding:4px 8px">🎵</button><button id="qt" onclick="quit()">Thoát</button></div>
  <div id="ub" style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap"></div><div id="boss" class="pill" style="display:none;flex-direction:column;align-items:stretch;gap:0">Nữ hoàng bào tử · BOSS<div class="bar"><i id="bb"></i></div></div>
 </div>
 <button class="rb" id="dash" onclick="dash()">Lướt</button>
@@ -80,20 +81,20 @@ let sel='lira',reg=0,G=null,keys={},joy=null,last=0;
 const lv=h=>1+Math.floor(Math.sqrt(S.xp[h]/80));
 const fmt=n=>Math.round(n).toLocaleString('vi-VN');
 function menu(){G=null;if(!S.prof)return signup();$('hud').style.display='none';$('dash').style.display=$('rage').style.display='none';
- $('m').innerHTML=`<div class="card"><h1>🌸 Cozy Golem</h1><div id="ol" class="s" style="margin:0 0 6px"></div><div class="row"><span>${S.prof.g=='f'?'👩':'👨'} <b>${esc(S.prof.n)}</b></span><span>Tổng điểm: <b>${fmt(S.tot)}</b></span></div>
+ $('m').innerHTML=`<div class="card"><h1>🌸 Cozy Golem</h1><div id="ol" class="s" style="margin:0 0 6px"></div><div class="s" style="margin:0 0 6px">🎵 <input type="range" min="0" max="100" value="${Math.round(MU.vol*100)}" oninput="svol(this.value)" style="width:100px;vertical-align:middle"> <button id="mu2" onclick="tmu()" style="font-size:12px;padding:3px 8px"></button> <span id="mt"></span></div><div class="row"><span>${S.prof.g=='f'?'👩':'👨'} <b>${esc(S.prof.n)}</b></span><span>Tổng điểm: <b>${fmt(S.tot)}</b></span></div>
  <div class="row"><span>Điểm swap: <b>${fmt(S.pts)}</b></span><span>Token: <b>${S.tok.toFixed(2)}</b></span></div>
  <div class="row"><button onclick="wal()">${S.addr||'Kết nối ví (demo)'}</button><button onclick="conv()" ${S.pts<1000?'disabled':''}>Đổi điểm → token</button></div>
  <h3>Nhân vật</h3><div class="grid">${Object.keys(HE).map(k=>`<button class="${k==sel?'on':''}" onclick="sel='${k}';menu()">${HE[k].n}<br>Lv ${lv(k)} · HP ${Math.round(HE[k].hp*(1+.05*lv(k))*(1+.1*tuo(k).hp))}</button>`).join('')}</div>
  <h3>Cổng sang trại khác</h3><div class="grid">${RG.map((r,i)=>`<button class="${i==reg?'on':''}" ${i>S.cl?'disabled':''} onclick="reg=${i};menu()">${i>S.cl?'🔒 ':''}${r[0]}<br>✦ ×${r[1]}<span class="rc" data-i="${i}"></span></button>`).join('')}</div>
  ${tuH()}${invH()}${dqH()}<h3>🏆 Bảng xếp hạng (tổng điểm)</h3><div id="lb"></div><button class="go" onclick="start()">▶ Vào trại ${RG[reg][0]}</button>
  <p class="s">Di chuyển: WASD / kéo chuột hoặc ngón tay · Space: lướt · E: Rage. Thắng một vùng để mở cổng tiếp theo. Ví và token chỉ là bản demo, lưu trên máy này.</p></div>`;
- $('m').style.display='flex';lbR();olR();setSt(-1);qrR()}
+ $('m').style.display='flex';lbR();olR();setSt(-1);qrR();musPlay(-1);muR()}
 function wal(){if(!S.addr){S.addr='0x'+[...Array(4)].map(()=>Math.random().toString(16).slice(2,6)).join('').slice(0,6)+'…'+Math.random().toString(16).slice(2,6);save();menu()}}
 function conv(){S.tok+=S.pts/1000;S.pts=0;save();menu()}
 function start(){const h=HE[sel],l=lv(sel),r=RG[reg],mh=h.hp*(1+.05*l)*(1+.1*tuo(sel).hp);
  G={t:180,h:sel,r:reg,p:{x:0,y:0,hp:mh,mh,dm:h.dm*(1+.06*l)*(1+.08*tuo(sel).dm),sp:h.sp,dash:0,dcd:0,rcd:0,ncd:0,hcd:0,fcd:0,gcd:0,zcd:0,ucd:0,sh:0,cdr:Math.min(.3,.02*tuo(sel).sk),skm:1+.08*tuo(sel).sk,ld:{x:1,y:0}},up:{orb:1,reach:0,might:0,armor:0,agi:0,reg:0},
   lvl:1,xp:0,nx:5,en:[],gm:[],tx:[],ln:[],mt:[],ch:[],vn:[],sl:[],wx:['sun','rain','storm','fog'][Math.floor(Math.random()*4)],pr:[],fx:[],ob:[],k:0,jw:0,jc:[0,0,0,0,0],ang:0,fire:0,spT:0,bs:0,bk:0,pause:0,over:0};
- $('m').style.display='none';$('hud').style.display='block';joinCamp();setSt(G.r);$('dash').style.display=$('rage').style.display='block';aub();ubR();HL();$('wx').textContent=WX[G.wx][0];toast(WX[G.wx][0]+' '+WX[G.wx][1]);toast('Độ khó '+'★'.repeat(G.r+1)+'☆'.repeat(10-G.r)+' · Quái +'+35*G.r+'% máu');last=performance.now()}
+ $('m').style.display='none';$('hud').style.display='block';joinCamp();setSt(G.r);$('dash').style.display=$('rage').style.display='block';aub();ubR();HL();musPlay(G.r);toast('🎵 '+TH[G.r+1].n);muR();$('wx').textContent=WX[G.wx][0];toast(WX[G.wx][0]+' '+WX[G.wx][1]);toast('Độ khó '+'★'.repeat(G.r+1)+'☆'.repeat(10-G.r)+' · Quái +'+35*G.r+'% máu');last=performance.now()}
 function quit(){if(G){G.q=1;end(false)}}
 function dash(){if(!G||G.pause||G.p.dcd>0)return;G.p.dash=.2;G.p.dcd=2.5;us();}
 function rage(){if(!G||G.pause||G.p.rcd>0)return;const p=G.p;p.rcd=12;us();G.fx.push({x:p.x,y:p.y,l:.5,m:.5});
@@ -415,5 +416,47 @@ function mon(e,R0){const st=SH[R0],s=e.s,k=s/22,px=e.x,t=T0*6+px*.05,ab=Math.abs
  else{spx(()=>x.rect(-8,-4,16,4),F('#2b1d3d'),1.5);spx(()=>x.rect(-8,-34,16,4),F('#2b1d3d'),1.5);spx(()=>x.roundRect?x.roundRect(-12,-31,24,28,6):x.rect(-12,-31,24,28),F('#e8452c'));x.strokeStyle='#2b1d3d';x.lineWidth=1.6;for(const d of[-24,-17,-10])x.strokeRect(-12,d,24,.1);x.fillStyle=fl?'#fff':ec;x.globalAlpha=.55;x.beginPath();x.ellipse(0,-17,8,10,0,0,7);x.fill();x.globalAlpha=1;eye(0,-21,5.2,6,'#2b1d3d');spx(()=>{x.moveTo(-3,-13);x.quadraticCurveTo(-6,-4,1,-3);x.quadraticCurveTo(6,-8,3,-13)},F('#ff7a9a'),1.5)}
  if(s>30){spx(()=>{x.moveTo(-13,-31);x.lineTo(13,-31);x.lineTo(9,-38);x.lineTo(-9,-38)},F('#8a8f99'),2);spx(()=>{x.moveTo(-6,-38);x.quadraticCurveTo(0,-50,6,-38)},F('#f5c542'),1.8)}
  x.restore()}
+
+const MU={ctx:null,on:S.mu!==false,vol:S.vol==null?.5:S.vol/100,th:-1,cur:-99,t0:0,step:0,mi:4,deg:0,bus:null};
+const SC={yo:[0,2,5,7,9],ins:[0,1,5,7,10],miy:[0,1,5,7,8],ryu:[0,4,5,7,11],hira:[0,2,3,7,8],maj:[0,2,4,7,9]};
+const TH=[{n:'Đền thờ yên bình',sc:SC.yo,root:60,bpm:64,mel:'koto',pad:1,perc:0,dens:.4},
+{n:'Hoa rơi trên thung',sc:SC.yo,root:62,bpm:76,mel:'koto',pad:1,perc:1,dens:.55},
+{n:'Đêm cố đô Kyoto',sc:SC.miy,root:64,bpm:68,mel:'flute',pad:1,perc:0,dens:.4,koto:1},
+{n:'Tuyết trắng Hokkaido',sc:SC.maj,root:72,bpm:60,mel:'bell',pad:1,perc:0,dens:.35},
+{n:'Rừng sương mù',sc:SC.ins,root:57,bpm:54,mel:'flute',pad:1,perc:0,dens:.3,drone:1},
+{n:'Gió biển Okinawa',sc:SC.ryu,root:60,bpm:92,mel:'sanshin',pad:0,perc:1,dens:.6},
+{n:'Đỉnh Phú Sĩ',sc:SC.yo,root:59,bpm:66,mel:'flute',pad:1,perc:2,dens:.4},
+{n:'Lá phong Nikko',sc:SC.ins,root:62,bpm:84,mel:'koto',pad:1,perc:1,dens:.6},
+{n:'Suối nước nóng',sc:SC.maj,root:65,bpm:62,mel:'bell',pad:1,perc:0,dens:.4},
+{n:'Cổ đạo linh thiêng',sc:SC.ins,root:58,bpm:58,mel:'flute',pad:1,perc:0,dens:.35,drone:1},
+{n:'Trống đảo Sado',sc:SC.hira,root:57,bpm:100,mel:'koto',pad:0,perc:2,dens:.65},
+{n:'Cõi U Minh',sc:SC.hira,root:50,bpm:50,mel:'bell',pad:1,perc:0,dens:.3,drone:1}];
+const mfq=m=>440*Math.pow(2,(m-69)/12);
+const mdg=(T,i)=>{const n=T.sc.length;return 12*Math.floor(i/n)+T.sc[((i%n)+n)%n]};
+function mvn(type,f,t,d,v,att,rel){const c=MU.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+att+d+rel);o.connect(g);g.connect(MU.bus);o.start(t);o.stop(t+att+d+rel+.05)}
+function mfl(f,t,d){const c=MU.ctx,o=c.createOscillator(),g=c.createGain(),l=c.createOscillator(),lg=c.createGain();o.type='sine';o.frequency.value=f;l.frequency.value=5;lg.gain.value=f*.012;l.connect(lg);lg.connect(o.frequency);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.13,t+.18);g.gain.linearRampToValueAtTime(.09,t+d);g.gain.exponentialRampToValueAtTime(.0001,t+d+.5);o.connect(g);g.connect(MU.bus);o.start(t);l.start(t);o.stop(t+d+.6);l.stop(t+d+.6)}
+function mtai(t){const c=MU.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(48,t+.25);g.gain.setValueAtTime(.45,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);o.connect(g);g.connect(MU.bus);o.start(t);o.stop(t+.65)}
+function mshk(t){const c=MU.ctx;if(!MU.nb){const b=c.createBuffer(1,c.sampleRate*.2,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;MU.nb=b}const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=MU.nb;f.type='highpass';f.frequency.value=6000;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);s.connect(f);f.connect(g);g.connect(MU.bus);s.start(t);s.stop(t+.1)}
+function minst(mel,f,t,sp){if(mel=='koto'){mvn('triangle',f,t,0,.2,.004,1.1);mvn('sine',f*2,t,0,.05,.004,.5)}
+ else if(mel=='flute')mfl(f,t,sp*(2+Math.floor(Math.random()*3)));
+ else if(mel=='bell'){mvn('sine',f,t,0,.12,.004,2.4);mvn('sine',f*2.76,t,0,.04,.004,1.2)}
+ else{mvn('sawtooth',f,t,0,.07,.003,.4);mvn('triangle',f,t,0,.12,.003,.5)}}
+function musTick(){const c=MU.ctx;if(!c||!MU.on||c.state!='running'||!MU.bus)return;const T=TH[MU.th+1],sp=30/T.bpm,n=T.sc.length;
+ while(MU.t0<c.currentTime+.35){const st=MU.step%16,t=MU.t0;
+  if(st==0)MU.deg=[0,3,4,2,0,1][Math.floor(Math.random()*6)];
+  if(st==0&&T.pad)for(const d of[0,2,4])mvn('triangle',mfq(T.root-12+mdg(T,MU.deg+d)),t,sp*12,.045,1.8,2.5);
+  if(st==0&&T.drone)mvn('sine',mfq(T.root-24),t,sp*12,.09,2,3);
+  if(Math.random()<T.dens*(st%2?.55:1)){MU.mi=Math.max(0,Math.min(2*n,MU.mi+Math.floor(Math.random()*5)-2));minst(T.mel,mfq(T.root+12+mdg(T,MU.mi)),t,sp)}
+  if(T.koto&&st%4==0&&Math.random()<.5)minst('koto',mfq(T.root+mdg(T,MU.deg+Math.floor(Math.random()*3)*2)),t,sp);
+  if(T.perc==1&&st%2==1)mshk(t);
+  if(T.perc==2&&(st==0||st==8||(st==12&&Math.random()<.4)))mtai(t);
+  MU.step++;MU.t0+=sp}}
+function musEnsure(){if(!MU.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;const c=MU.ctx=new C(),m=MU.master=c.createGain();m.gain.value=MU.vol;m.connect(c.destination);const lp=MU.dry=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5500;lp.connect(m);const dl=MU.wet=c.createDelay(1);dl.delayTime.value=.36;const fb=c.createGain();fb.gain.value=.38;const wl=c.createBiquadFilter();wl.type='lowpass';wl.frequency.value=2200;const wg=c.createGain();wg.gain.value=.4;dl.connect(wl);wl.connect(fb);fb.connect(dl);wl.connect(wg);wg.connect(m);setInterval(musTick,100)}if(MU.ctx.state=='suspended')MU.ctx.resume();return true}
+function musSet(i){const c=MU.ctx,nb=c.createGain();nb.gain.value=0;nb.connect(MU.dry);nb.connect(MU.wet);const ob=MU.bus;if(ob){ob.gain.cancelScheduledValues(c.currentTime);ob.gain.setValueAtTime(ob.gain.value,c.currentTime);ob.gain.linearRampToValueAtTime(0,c.currentTime+1.5);setTimeout(()=>ob.disconnect(),2500)}MU.bus=nb;nb.gain.linearRampToValueAtTime(1,c.currentTime+1.5);MU.t0=c.currentTime+.1;MU.step=0;MU.mi=4;MU.deg=0}
+function musPlay(i){MU.th=i;if(!MU.on)return;if(!musEnsure())return;if(MU.bus&&MU.cur==i)return;MU.cur=i;musSet(i);muR()}
+function tmu(){MU.on=!MU.on;S.mu=MU.on;save();if(MU.on){MU.cur=-99;musPlay(MU.th)}else if(MU.ctx)MU.ctx.suspend();muR()}
+function svol(v){MU.vol=v/100;S.vol=+v;save();if(MU.master)MU.master.gain.value=MU.vol}
+function muR(){const b=$('mu2');if(b)b.textContent=MU.on?'Nhạc: BẬT':'🔇 Nhạc: TẮT';const h=$('mu');if(h)h.textContent=MU.on?'🎵':'🔇';const m=$('mt');if(m)m.textContent=MU.on?TH[MU.th+1].n:''}
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{if(MU.on){if(!MU.ctx)musPlay(MU.th);else if(MU.ctx.state=='suspended')MU.ctx.resume()}}));
 invInit();aub();netInit();lobInit();menu();requestAnimationFrame(loop);
 </script></body></html>
