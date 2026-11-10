@@ -315,10 +315,11 @@ function qrR(){const e=$('qr');if(e&&window.QRCode)try{new QRCode(e,{text:invUrl
 async function shareInv(){const u=invUrl();try{if(navigator.share){await navigator.share({title:'Cozy Golem',text:'Chơi Cozy Golem cùng mình! Mã mời '+S.inv,url:u});return}}catch(_){}try{await navigator.clipboard.writeText(u);toast('📋 Đã sao chép link mời')}catch(_){prompt('Sao chép link:',u)}}
 function invSync(d){try{const iv=d.collection('invites');if(S.ref&&!S.refSent)iv.doc(uid).set({r:S.ref}).then(()=>{S.refSent=1;save()}).catch(()=>{});
  iv.where('r','==',S.inv).onSnapshot(sn=>{const n=sn.docs.length,g=n-(S.rc||0);if(g>0){S.pts+=g*200;S.tot+=g*200;S.rc=n;save();sync();toast('🎉 '+g+' bạn mới nhập mã mời: +'+g*200+' ✦')}},()=>{})}catch(_){}}
-let lob=null,onl={t:1,c:[0,0,0,0,0,0]};
-async function lobInit(){try{const r=await claude.use('room');if(!r)return;lob=r;r.onPeers(ch=>{const c=[0,0,0,0,0,0];let t=0;for(const p of ch.peers){if(p.kind!='viewer')continue;t++;const k=p.presence&&p.presence.c;if(k>=0&&k<6)c[k]++}onl={t,c};olR()},()=>{lob=null;olR()});setSt(-1);olR()}catch(e){}}
+let lobErr='',lob=null,onl={t:1,c:[0,0,0,0,0,0]};
+async function lobInit(){try{const r=await claude.use('room');if(!r)return;lob=r;r.onPeers(ch=>{const c=[0,0,0,0,0,0];let t=0;for(const p of ch.peers){if(p.kind!='viewer')continue;t++;const k=p.presence&&p.presence.c;if(k>=0&&k<6)c[k]++}onl={t,c};olR()},e=>{lob=null;lobErr=e&&(e.code||e.message)||'?';olR()});setSt(-1);olR()}catch(e){lobErr=(e&&(e.code||e.message))||String(e);olR()}}
+const LH={'auth/unauthorized-domain':'chưa thêm tên miền vào Authorized domains','auth/operation-not-allowed':'chưa bật đăng nhập Anonymous','auth/configuration-not-found':'chưa bật Authentication','auth/admin-restricted-operation':'chưa bật đăng nhập Anonymous','permission-denied':'chưa dán Rules cho Firestore','failed-precondition':'chưa tạo Firestore Database','unavailable':'không kết nối được máy chủ Firebase'};
 function setSt(c){if(lob)lob.presence({c,n:S.prof?S.prof.n:'?'}).catch(()=>{})}
-function olR(){const e=$('ol');if(e)e.textContent=lob?'🟢 Đang online: '+onl.t+' người chơi (gồm bạn)':'⚪ Chưa kết nối online (kiểm tra mạng hoặc cấu hình Firebase)';
+function olR(){const e=$('ol');if(e)e.textContent=lob?'🟢 Đang online: '+onl.t+' người chơi (gồm bạn)':'⚪ Chưa kết nối online'+(lobErr?' — '+(LH[lobErr]||'lỗi: '+lobErr):' (đang thử kết nối…)');
  document.querySelectorAll('.rc').forEach(b=>{const n=onl.c[+b.dataset.i];b.textContent=n?' · 👥 '+n+' đang chơi':''})}
 function lbR(){const e=$('lb');if(!e)return;e.innerHTML=lbRows.length?lbRows.map((r,i)=>`<div class="k"><span>${i+1}. ${r.g=='f'?'👩':'👨'} ${esc(r.n)}</span><span>${fmt(+r.tot||0)}</span></div>`).join(''):`<p class="s">${dbp?'Chưa có ai trên bảng. Hãy thắng một trận!':'Chưa kết nối máy chủ — kiểm tra mạng hoặc cấu hình Firebase.'}</p>`}
 function sync(){if(dbp&&uid&&S.prof)dbp.doc(uid).set({n:S.prof.n,g:S.prof.g,tot:S.tot,cl:S.cl}).catch(()=>{})}
